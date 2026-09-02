@@ -47,9 +47,9 @@ O projeto original foi criado para o casamento de **Lidieyne & Alexandre**, em *
 ## Início rápido
 
 ```bash
-git clone URL_DO_REPOSITORIO
+git clone https://github.com/david25112510/wedding-guest-camera.git
 cd wedding-guest-camera
-npm run install:ci
+npm install
 npm run db:generate
 npm run dev
 ```
