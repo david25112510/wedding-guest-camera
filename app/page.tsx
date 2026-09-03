@@ -6,6 +6,7 @@ import {
   Images,
   LoaderCircle,
   RefreshCw,
+  ShieldCheck,
   Sparkles,
   X,
 } from "lucide-react";
@@ -35,6 +36,7 @@ export default function Home() {
   const toastTimer = useRef<number | null>(null);
   const [name, setName] = useState("");
   const [joined, setJoined] = useState(false);
+  const [consented, setConsented] = useState(false);
   const [remaining, setRemaining] = useState(eventConfig.maximumPhotosPerGuest);
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -70,10 +72,12 @@ export default function Home() {
 
   useEffect(() => {
     const savedName = localStorage.getItem("24momentos_guest_name");
+    const savedConsent = localStorage.getItem("24momentos_privacy_consent") === "yes";
     if (savedName) {
       setName(savedName);
       setJoined(true);
     }
+    if (savedConsent) setConsented(true);
     void loadGallery();
     const timer = window.setInterval(loadGallery, 6000);
     return () => {
@@ -97,8 +101,18 @@ export default function Home() {
     setJoined(true);
   }
 
+  function acceptConsent() {
+    localStorage.setItem("24momentos_privacy_consent", "yes");
+    setConsented(true);
+  }
+
+  function openCamera() {
+    if (!consented) return;
+    inputRef.current?.click();
+  }
+
   async function sendPhoto(file?: File) {
-    if (!file || remaining <= 0) return;
+    if (!file || remaining <= 0 || !consented) return;
     setUploading(true);
     setMessage("");
     try {
@@ -166,14 +180,30 @@ export default function Home() {
               </div>
               <div className="camera-action">
                 <span className="camera-action__orbit" aria-hidden="true" />
-                <input ref={inputRef} type="file" accept="image/*" capture="environment" className="sr-only" onChange={(event) => void sendPhoto(event.target.files?.[0])} />
-                <button onClick={() => inputRef.current?.click()} disabled={uploading || remaining <= 0} aria-label={remaining > 0 ? "Abrir câmera" : "Limite de fotos atingido"}>
+                <input ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp" capture="environment" className="sr-only" onChange={(event) => void sendPhoto(event.target.files?.[0])} />
+                <button onClick={openCamera} disabled={uploading || remaining <= 0 || !consented} aria-label={remaining > 0 ? "Abrir câmera" : "Limite de fotos atingido"}>
                   {uploading ? <LoaderCircle className="animate-spin" /> : <Camera />}
                 </button>
-                <strong>{uploading ? "Revelando..." : remaining > 0 ? "Abrir câmera" : "Filme completo"}</strong>
+                <strong>{uploading ? "Revelando..." : remaining > 0 ? consented ? "Abrir câmera" : "Aceite para fotografar" : "Filme completo"}</strong>
               </div>
               {message && <div className="capture__message" role="status"><Sparkles />{message}</div>}
             </div>
+
+            {!consented && (
+              <section className="consent-card" aria-labelledby="consent-title">
+                <div className="consent-card__icon"><ShieldCheck /></div>
+                <div className="consent-card__copy">
+                  <p className="eyebrow">PRIVACIDADE & CONSENTIMENTO</p>
+                  <h2 id="consent-title">Antes de registrar o próximo momento</h2>
+                  <p>
+                    As fotos enviadas por você serão exibidas no mural coletivo deste casamento e poderão ser vistas pelos demais convidados. Ao continuar, você declara que está de acordo com o envio e a exibição das imagens que escolher compartilhar.
+                  </p>
+                  <small>Envie apenas fotos apropriadas ao evento e que você tenha autorização para compartilhar.</small>
+                </div>
+                <button className="consent-card__button" onClick={acceptConsent}>Entendi e concordo</button>
+              </section>
+            )}
+
             <a className="gallery-jump" href="#galeria">Ver o mural<ChevronDown /></a>
           </section>
 
@@ -185,7 +215,7 @@ export default function Home() {
             <p className="gallery__quote">Cada foto conta uma história. Cada momento, uma lembrança eterna.</p>
 
             {photos.length === 0 ? (
-              <div className="empty-gallery"><Images /><p>A história começa com a primeira foto.</p><button onClick={() => inputRef.current?.click()}>Registrar agora</button></div>
+              <div className="empty-gallery"><Images /><p>A história começa com a primeira foto.</p><button onClick={openCamera} disabled={!consented}>Registrar agora</button></div>
             ) : (
               <div className="photo-grid">
                 {photos.map((photo, index) => (
