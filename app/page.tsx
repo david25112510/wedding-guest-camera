@@ -73,11 +73,13 @@ export default function Home() {
   useEffect(() => {
     const savedName = localStorage.getItem("24momentos_guest_name");
     const savedConsent = localStorage.getItem("24momentos_privacy_consent") === "yes";
-    if (savedName) {
-      setName(savedName);
-      setJoined(true);
-    }
-    if (savedConsent) setConsented(true);
+    queueMicrotask(() => {
+      if (savedName) {
+        setName(savedName);
+        setJoined(true);
+      }
+      if (savedConsent) setConsented(true);
+    });
     void loadGallery();
     const timer = window.setInterval(loadGallery, 6000);
     return () => {
