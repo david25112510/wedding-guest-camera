@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "./mural-interactions.css";
+import "./luxury-mural.css";
 
 export const metadata: Metadata = {
   title: "Lidieyne & Alexandre | 19.09.2026",
