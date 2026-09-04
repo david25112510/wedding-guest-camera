@@ -13,10 +13,12 @@
 ## Instalação
 
 ```bash
-npm run install:ci
+npm install
 npm run db:generate
 npm run dev
 ```
+
+Em ambientes de integração contínua com `package-lock.json`, prefira `npm ci`.
 
 ## Bindings
 
