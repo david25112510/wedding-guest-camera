@@ -24,7 +24,7 @@ Recebe `multipart/form-data`.
 
 | Campo | Tipo | Obrigatório | Descrição |
 |---|---|---:|---|
-| `photo` | arquivo | sim | Imagem de até 12 MB |
+| `photo` | arquivo | sim | JPEG, PNG ou WebP de até 12 MB, vindo da câmera ou galeria |
 | `guestName` | texto | sim | Nome exibido, limitado a 40 caracteres |
 
 Resposta de sucesso:
@@ -35,13 +35,13 @@ Resposta de sucesso:
 
 Erros:
 
-- `400`: arquivo ausente, inválido ou muito grande;
+- `400`: arquivo ausente, tipo não permitido, assinatura inválida ou tamanho acima de 12 MB;
 - `403`: limite de fotos atingido;
 - `500`: falha inesperada de armazenamento ou banco.
 
 ## GET /api/photos/:id
 
-Entrega a imagem pelo identificador. Objetos encontrados recebem cache imutável de longo prazo.
+Entrega a imagem pelo identificador. Objetos encontrados recebem `Content-Type`, proteção `nosniff`, exibição inline e cache privado de uma hora.
 
 ## Evoluções recomendadas
 
@@ -52,3 +52,7 @@ Entrega a imagem pelo identificador. Objetos encontrados recebem cache imutável
 - rate limiting;
 - código único por convite;
 - processamento assíncrono de imagens.
+
+## Observação sobre HEIC
+
+Muitos iPhones convertem a imagem para JPEG ao compartilhar pelo navegador, mas isso não é garantido. Arquivos enviados como `image/heic` ou `image/heif` são recusados nesta versão.

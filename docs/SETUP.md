@@ -8,6 +8,7 @@
 - banco Cloudflare D1;
 - bucket Cloudflare R2;
 - HTTPS em produção, obrigatório para uma boa experiência de câmera.
+- bindings de produção chamados exatamente `DB` e `BUCKET`.
 
 ## Instalação
 
@@ -54,7 +55,7 @@ Depois da publicação pública:
 1. copie a URL HTTPS definitiva;
 2. gere o QR Code apontando diretamente para essa URL;
 3. teste em Android e iPhone;
-4. confirme câmera, upload, contador e galeria;
+4. confirme câmera, importação da galeria, upload, contador e mural;
 5. imprima o QR Code com uma URL legível como alternativa.
 
 ## Lista de testes antes do evento
@@ -62,8 +63,11 @@ Depois da publicação pública:
 - conexão Wi-Fi/4G no local;
 - permissão da câmera;
 - fotos em retrato e paisagem;
-- arquivos HEIC/JPEG;
+- importação de JPEG, PNG e WebP;
+- comportamento de arquivos HEIC/HEIF;
 - limite de 24 capturas;
+- limite compartilhado entre câmera e galeria;
+- consentimento exibido apenas antes do primeiro aceite;
 - recarga e reabertura da página;
 - galeria em dois celulares;
 - espaço disponível no bucket;

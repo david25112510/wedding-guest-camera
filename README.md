@@ -1,66 +1,62 @@
 # Wedding Guest Camera
 
-Uma câmera descartável digital para casamentos e eventos. O convidado lê um QR Code, informa seu nome, abre a câmera do celular e registra até 24 fotos. Cada imagem é enviada automaticamente e passa a fazer parte de uma galeria coletiva.
+Plataforma colaborativa de fotografias para casamentos e eventos. O convidado acessa pelo QR Code, informa seu nome e registra até **24 momentos** usando a câmera ou escolhendo imagens da própria galeria. Cada arquivo validado é enviado automaticamente e aparece no mural coletivo.
 
-O projeto original foi criado para o casamento de **Lidieyne & Alexandre**, em **19.09.2026**, mas sua configuração foi centralizada para permitir adaptação rápida a outros eventos.
+O projeto foi criado para o casamento de **Lidieyne & Alexandre**, em **19.09.2026**, com identidade **All Black**, acabamento dourado e monograma tridimensional. Sua configuração centralizada permite reutilizá-lo em outros eventos.
 
 ## Experiência do convidado
 
-1. Escaneia o QR Code do evento.
-2. Informa o nome pelo qual deseja ser identificado.
-3. Autoriza o navegador a acessar a câmera.
-4. Tira uma foto sem sair da experiência.
-5. A foto é enviada automaticamente.
-6. O contador é reduzido de 24 para 23 e assim por diante.
-7. A imagem aparece na galeria coletiva.
+1. Escaneia o QR Code e acessa o endereço HTTPS.
+2. Informa o nome que será exibido no mural.
+3. Confirma uma vez o aviso de privacidade.
+4. Escolhe entre **Abrir câmera** e **Escolher da galeria**.
+5. A foto é validada, armazenada e publicada no mural.
+6. O saldo individual diminui até o limite de 24 fotos.
 
-> Navegadores móveis exigem autorização do usuário para acessar a câmera. Por isso, o QR Code abre diretamente a tela de entrada, mas a primeira captura ainda depende da permissão padrão do celular.
+> O QR Code abre o site, mas os navegadores móveis exigem uma ação do usuário para abrir a câmera ou a galeria. Essa é uma proteção do Android e do iPhone.
 
-## Principais recursos
+## Recursos
 
-- interface mobile-first;
-- câmera traseira sugerida automaticamente;
-- limite configurável de fotos;
-- contador persistente no servidor;
-- armazenamento de imagens no Cloudflare R2;
-- metadados no Cloudflare D1;
-- galeria coletiva em formato editorial;
-- atualização automática a cada 10 segundos;
-- identificação do autor de cada foto;
-- validação de formato e tamanho;
-- design e dados do evento centralizados;
-- implantação compatível com Cloudflare Workers.
+- experiência responsiva e mobile-first;
+- captura pela câmera traseira em dispositivos compatíveis;
+- importação de JPEG, PNG e WebP da galeria;
+- limite configurável e controlado no servidor;
+- consentimento discreto salvo uma vez no aparelho;
+- armazenamento privado de imagens no Cloudflare R2;
+- convidados e metadados no Cloudflare D1;
+- mural editorial com atualização automática;
+- indicação do autor e visualização ampliada;
+- validação de MIME, assinatura e tamanho do arquivo;
+- compensação do contador quando o armazenamento falha;
+- tema All Black com monograma 3D;
+- execução compatível com Cloudflare Workers.
 
 ## Tecnologias
 
-- Next.js 16;
-- React 19;
+- Next.js 16 e React 19;
 - TypeScript;
-- Vinext e Vite;
-- Tailwind CSS;
+- Vinext, Vite e Tailwind CSS;
 - Drizzle ORM;
-- Cloudflare Workers;
-- Cloudflare D1;
-- Cloudflare R2;
+- Cloudflare Workers, D1 e R2;
 - Lucide React.
 
 ## Início rápido
 
-```bash
+~~~bash
 git clone https://github.com/david25112510/wedding-guest-camera.git
 cd wedding-guest-camera
-npm install
+npm run install:ci
 npm run db:generate
 npm run dev
-```
+~~~
 
-Requer Node.js 22.13 ou superior.
+Requer Node.js **22.13 ou superior**.
 
-## Personalização
+## Configuração do evento
 
-Edite `lib/event-config.ts`:
+Edite **lib/event-config.ts**:
 
-```ts
+~~~ts
 export const eventConfig = {
   couple: {
     firstName: "Lidieyne",
@@ -70,42 +66,52 @@ export const eventConfig = {
   date: "19.09.2026",
   maximumPhotosPerGuest: 24,
 };
-```
+~~~
 
-Para alterar cores, fontes, molduras e acabamento visual, edite `app/globals.css`.
+O monograma principal está em **public/monogram-la-3d.png**. Para outro evento, substitua o arquivo e atualize seu texto alternativo em **app/page.tsx**.
 
-## Estrutura principal
+## Estrutura
 
-```text
+~~~text
 app/
   api/photos/          upload, listagem e entrega das imagens
-  globals.css          identidade visual e responsividade
-  layout.tsx           metadados do site
-  page.tsx             experiência do convidado e galeria
+  globals.css          estilos-base e responsividade
+  luxury-mural.css     identidade All Black e acabamento dourado
+  mural-interactions.css
+  layout.tsx
+  page.tsx
 db/
-  index.ts             conexão com D1
-  schema.ts            tabelas guests e photos
+  index.ts
+  schema.ts
 drizzle/               migrações SQL
 lib/
-  event-config.ts      configuração reutilizável do evento
-docs/                  documentação técnica
-```
+  event-config.ts
+public/
+  monogram-la-3d.png
+docs/
+~~~
 
 ## Documentação
 
+- [Guia de uso](docs/USER_GUIDE.md)
 - [Arquitetura](docs/ARCHITECTURE.md)
 - [Instalação e implantação](docs/SETUP.md)
 - [API](docs/API.md)
 - [Banco de dados](docs/DATABASE.md)
-- [Personalização](docs/CUSTOMIZATION.md)
+- [Personalização e reutilização](docs/CUSTOMIZATION.md)
 - [Segurança e privacidade](SECURITY.md)
+- [Histórico de mudanças](CHANGELOG.md)
 - [Como contribuir](CONTRIBUTING.md)
 
-## Limite de 24 fotos
+## Limites conhecidos
 
-O servidor atribui ao navegador um identificador em cookie e registra a quantidade enviada no banco. Esse modelo é simples para convidados e evita que atualizar ou fechar a página reinicie o contador.
+- o limite é associado ao cookie do navegador/dispositivo;
+- apagar cookies ou usar outro navegador cria uma nova identificação;
+- HEIC/HEIF não é aceito diretamente nesta versão;
+- não há painel administrativo ou moderação;
+- a listagem retorna até 1.200 fotos recentes.
 
-O limite atual é por navegador/dispositivo. Para impedir que alguém apague cookies ou troque de aparelho, implemente códigos individuais de convite, autenticação ou tokens únicos no QR Code.
+Para controle rígido por pessoa, use tokens únicos por convite ou QR Codes individuais.
 
 ## Licença
 

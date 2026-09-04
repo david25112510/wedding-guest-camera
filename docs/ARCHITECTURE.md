@@ -7,19 +7,22 @@ O sistema combina uma interface React otimizada para celulares com rotas de serv
 ```mermaid
 flowchart TD
   QR[QR Code do evento] --> UI[Aplicação mobile]
-  UI --> Camera[Câmera do celular]
+  UI --> Source{Origem}
+  Source --> Camera[Câmera do celular]
+  Source --> Gallery[Galeria do aparelho]
   Camera --> API[API de fotos]
+  Gallery --> API
   API --> DB[(D1: convidados e metadados)]
   API --> R2[(R2: arquivos de imagem)]
-  DB --> Gallery[Galeria coletiva]
-  R2 --> Gallery
+  DB --> Mural[Mural coletivo]
+  R2 --> Mural
 ```
 
 ## Componentes
 
 ### Interface
 
-`app/page.tsx` controla entrada, captura, contador, mensagens de envio e galeria. A câmera é acionada por um campo de arquivo com `capture="environment"`, que sugere a câmera traseira em dispositivos compatíveis.
+`app/page.tsx` controla entrada, consentimento, captura, importação, contador, mensagens de envio e mural. Há dois campos de arquivo: um com `capture="environment"`, que sugere a câmera traseira, e outro sem `capture`, que abre a galeria ou o seletor de arquivos. Ambos usam a mesma rotina de upload.
 
 ### API
 
@@ -32,6 +35,8 @@ D1 guarda identidade anônima, nome, contagem e metadados. R2 guarda os arquivos
 ### Identificação
 
 O servidor cria o cookie HTTP-only `momentos_guest`, válido por 30 dias. O nome exibido é salvo localmente apenas para conveniência da interface; a contagem oficial permanece no servidor.
+
+O aceite do aviso de privacidade é registrado localmente com a chave `24momentos_privacy_consent`. Ele controla a interface, mas não substitui a política de privacidade e retenção definida pelo responsável pelo evento.
 
 ## Fluxo de upload
 
@@ -46,7 +51,7 @@ O servidor cria o cookie HTTP-only `momentos_guest`, válido por 30 dias. O nome
 ## Limites atuais
 
 - máximo de 12 MB por imagem;
-- até 120 fotos retornadas por consulta;
+- até 1.200 fotos retornadas por consulta;
 - atualização da galeria a cada 10 segundos;
 - limite por cookie/dispositivo;
 - sem moderação administrativa nesta versão.

@@ -21,8 +21,16 @@ type Photo = {
 };
 
 function Monogram({ compact = false }: { compact?: boolean }) {
+  if (!compact) {
+    return (
+      <span className="monogram monogram--hero" aria-label="Monograma LA">
+        <img src="/monogram-la-3d.png" alt="Monograma tridimensional LA de Lidieyne e Alexandre" />
+      </span>
+    );
+  }
+
   return (
-    <span className={compact ? "monogram monogram--compact" : "monogram"} aria-label="L A">
+    <span className="monogram monogram--compact" aria-label="L A">
       <i>{eventConfig.couple.initials[0]}</i>
       <b>{eventConfig.couple.initials[1]}</b>
     </span>
@@ -31,6 +39,7 @@ function Monogram({ compact = false }: { compact?: boolean }) {
 
 export default function Home() {
   const inputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
   const knownPhotoIds = useRef<Set<string>>(new Set());
   const galleryInitialized = useRef(false);
   const toastTimer = useRef<number | null>(null);
@@ -113,6 +122,11 @@ export default function Home() {
     inputRef.current?.click();
   }
 
+  function openGallery() {
+    if (!consented) return;
+    galleryInputRef.current?.click();
+  }
+
   async function sendPhoto(file?: File) {
     if (!file || remaining <= 0 || !consented) return;
     setUploading(true);
@@ -136,6 +150,7 @@ export default function Home() {
     } finally {
       setUploading(false);
       if (inputRef.current) inputRef.current.value = "";
+      if (galleryInputRef.current) galleryInputRef.current.value = "";
     }
   }
 
@@ -157,18 +172,24 @@ export default function Home() {
         <section className="welcome">
           <div className="welcome__frame" aria-hidden="true" />
           <div className="welcome__content">
-            <p className="eyebrow">NOSSO CASAMENTO</p>
-            <div className="crest"><Monogram /><span>{eventConfig.date}</span></div>
-            <h1>{eventConfig.couple.firstName} <em>&</em> {eventConfig.couple.secondName}</h1>
-            <p className="welcome__copy">Guarde o nosso dia através do seu olhar.<br />Você recebeu um filme com {eventConfig.maximumPhotosPerGuest} momentos.</p>
-            <div className="guest-entry">
-              <label htmlFor="guest-name">Assine este capítulo</label>
-              <div className="guest-entry__field">
-                <input id="guest-name" value={name} onChange={(event) => setName(event.target.value)} onKeyDown={(event) => event.key === "Enter" && enterEvent()} placeholder="Seu nome" autoComplete="name" />
-                <button onClick={enterEvent} disabled={!name.trim()} aria-label="Entrar no casamento">Entrar</button>
-              </div>
+            <div className="welcome__emblem">
+              <p className="eyebrow">EDIÇÃO ESPECIAL · 19.09.2026</p>
+              <div className="crest"><Monogram /></div>
+              <p className="welcome__edition">UMA NOITE · 24 MOMENTOS · MUITAS MEMÓRIAS</p>
             </div>
-            <div className="welcome__hint"><span>{eventConfig.maximumPhotosPerGuest}</span><p>fotos para registrar<br />do seu jeito</p></div>
+            <div className="welcome__story">
+              <p className="welcome__kicker">A câmera dos convidados</p>
+              <h1><span>{eventConfig.couple.firstName}</span> <em>&</em> <span>{eventConfig.couple.secondName}</span></h1>
+              <p className="welcome__copy">O nosso dia, visto pelos seus olhos. Registre os instantes que só você poderia enxergar.</p>
+              <div className="guest-entry">
+                <label htmlFor="guest-name">Como podemos chamar você?</label>
+                <div className="guest-entry__field">
+                  <input id="guest-name" value={name} onChange={(event) => setName(event.target.value)} onKeyDown={(event) => event.key === "Enter" && enterEvent()} placeholder="Digite seu nome" autoComplete="name" />
+                  <button onClick={enterEvent} disabled={!name.trim()} aria-label="Entrar no casamento">Entrar na experiência</button>
+                </div>
+              </div>
+              <div className="welcome__hint"><span>{eventConfig.maximumPhotosPerGuest}</span><p>fotos exclusivas<br />reservadas para você</p></div>
+            </div>
           </div>
         </section>
       ) : (
@@ -178,32 +199,29 @@ export default function Home() {
               <div className="capture__copy">
                 <p className="eyebrow">OLÁ, {name.toUpperCase()}</p>
                 <h1>O próximo<br />momento é seu.</h1>
-                <p>Abra a câmera, registre e pronto.<br />Nós cuidamos do resto.</p>
+                <p>Fotografe agora ou escolha uma imagem da sua galeria.<br />Nós cuidamos do resto.</p>
               </div>
               <div className="camera-action">
                 <span className="camera-action__orbit" aria-hidden="true" />
                 <input ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp" capture="environment" className="sr-only" onChange={(event) => void sendPhoto(event.target.files?.[0])} />
+                <input ref={galleryInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(event) => void sendPhoto(event.target.files?.[0])} />
                 <button onClick={openCamera} disabled={uploading || remaining <= 0 || !consented} aria-label={remaining > 0 ? "Abrir câmera" : "Limite de fotos atingido"}>
                   {uploading ? <LoaderCircle className="animate-spin" /> : <Camera />}
                 </button>
                 <strong>{uploading ? "Revelando..." : remaining > 0 ? consented ? "Abrir câmera" : "Aceite para fotografar" : "Filme completo"}</strong>
+                <button className="camera-action__gallery" onClick={openGallery} disabled={uploading || remaining <= 0 || !consented} aria-label="Escolher foto da galeria">
+                  <Images /> Escolher da galeria
+                </button>
               </div>
               {message && <div className="capture__message" role="status"><Sparkles />{message}</div>}
             </div>
 
             {!consented && (
-              <section className="consent-card" aria-labelledby="consent-title">
-                <div className="consent-card__icon"><ShieldCheck /></div>
-                <div className="consent-card__copy">
-                  <p className="eyebrow">PRIVACIDADE & CONSENTIMENTO</p>
-                  <h2 id="consent-title">Antes de registrar o próximo momento</h2>
-                  <p>
-                    As fotos enviadas por você serão exibidas no mural coletivo deste casamento e poderão ser vistas pelos demais convidados. Ao continuar, você declara que está de acordo com o envio e a exibição das imagens que escolher compartilhar.
-                  </p>
-                  <small>Envie apenas fotos apropriadas ao evento e que você tenha autorização para compartilhar.</small>
-                </div>
-                <button className="consent-card__button" onClick={acceptConsent}>Entendi e concordo</button>
-              </section>
+              <div className="consent-note" role="note" aria-label="Consentimento para envio de fotos">
+                <ShieldCheck aria-hidden="true" />
+                <p>Ao continuar, você concorda que as fotos enviadas sejam exibidas no mural privado deste casamento.</p>
+                <button onClick={acceptConsent}>Concordo e continuar</button>
+              </div>
             )}
 
             <a className="gallery-jump" href="#galeria">Ver o mural<ChevronDown /></a>
