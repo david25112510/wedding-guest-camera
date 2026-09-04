@@ -1,5 +1,13 @@
 # Histórico de mudanças
 
+## Consentimento em destaque
+
+### Alterado
+
+- aviso de consentimento movido para dentro da área principal da câmera;
+- título, explicação e botão ampliados para facilitar a identificação no celular;
+- aceite continua sendo solicitado apenas uma vez por aparelho.
+
 ## Otimização de imagens
 
 ### Adicionado

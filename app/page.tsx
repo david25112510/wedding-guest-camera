@@ -225,16 +225,20 @@ export default function Home() {
                   <Images /> Escolher da galeria
                 </button>
               </div>
+              {!consented && (
+                <div className="consent-card" role="group" aria-labelledby="consent-title">
+                  <span className="consent-card__icon"><ShieldCheck aria-hidden="true" /></span>
+                  <div className="consent-card__copy">
+                    <p className="eyebrow">ANTES DE FOTOGRAFAR</p>
+                    <h2 id="consent-title">Autorize a exibição das suas fotos</h2>
+                    <p>As imagens que você enviar aparecerão no mural deste casamento.</p>
+                    <small>Você escolhe o que compartilhar. A autorização fica salva neste aparelho.</small>
+                  </div>
+                  <button className="consent-card__button" onClick={acceptConsent}>Concordo e liberar câmera</button>
+                </div>
+              )}
               {message && <div className="capture__message" role="status"><Sparkles />{message}</div>}
             </div>
-
-            {!consented && (
-              <div className="consent-note" role="note" aria-label="Consentimento para envio de fotos">
-                <ShieldCheck aria-hidden="true" />
-                <p>Ao continuar, você concorda que as fotos enviadas sejam exibidas no mural privado deste casamento.</p>
-                <button onClick={acceptConsent}>Concordo e continuar</button>
-              </div>
-            )}
 
             <a className="gallery-jump" href="#galeria">Ver o mural<ChevronDown /></a>
           </section>

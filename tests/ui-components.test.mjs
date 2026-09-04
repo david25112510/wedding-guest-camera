@@ -26,6 +26,18 @@ test("sends both image variants and keeps the full photo for the lightbox", asyn
   assert.match(page, /src=\{selectedPhoto\.url\}/);
 });
 
+test("keeps consent visible beside the camera action", async () => {
+  const [page, styles] = await Promise.all([
+    source("app/page.tsx"),
+    source("app/mural-interactions.css"),
+  ]);
+
+  assert.match(page, /Autorize a exibição das suas fotos/);
+  assert.match(page, /Concordo e liberar câmera/);
+  assert.match(page, /role="group" aria-labelledby="consent-title"/);
+  assert.match(styles, /\.capture__card>\.consent-card/);
+});
+
 test("stores, serves, and deletes the thumbnail with the original", async () => {
   const [uploadApi, deliveryApi, adminApi, schema] = await Promise.all([
     source("app/api/photos/route.ts"),

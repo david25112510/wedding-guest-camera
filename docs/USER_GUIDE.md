@@ -4,7 +4,7 @@
 
 1. Escaneie o QR Code do casamento.
 2. Digite seu nome e toque em **Entrar na experiência**.
-3. Leia o aviso e toque em **Concordo e continuar**.
+3. No cartão destacado abaixo da câmera, leia o aviso e toque em **Concordo e liberar câmera**.
 4. Use **Abrir câmera** para fotografar naquele momento ou **Escolher da galeria** para selecionar uma imagem já salva.
 5. Aguarde a mensagem de confirmação antes de fechar a página.
 6. Veja a foto no mural e acompanhe o número de imagens restantes.
