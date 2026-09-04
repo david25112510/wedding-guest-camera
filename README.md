@@ -29,6 +29,9 @@ O projeto foi criado para o casamento de **Lidieyne & Alexandre**, em **19.09.20
 - validação de MIME, assinatura e tamanho do arquivo;
 - compensação do contador quando o armazenamento falha;
 - tema All Black com monograma 3D;
+- painel administrativo protegido pelo login do proprietário;
+- ocultação, restauração e exclusão de fotos;
+- indicadores de fotos e convidados;
 - execução compatível com Cloudflare Workers.
 
 ## Tecnologias
@@ -94,6 +97,7 @@ docs/
 ## Documentação
 
 - [Guia de uso](docs/USER_GUIDE.md)
+- [Painel administrativo](docs/ADMIN.md)
 - [Arquitetura](docs/ARCHITECTURE.md)
 - [Instalação e implantação](docs/SETUP.md)
 - [API](docs/API.md)
@@ -108,7 +112,7 @@ docs/
 - o limite é associado ao cookie do navegador/dispositivo;
 - apagar cookies ou usar outro navegador cria uma nova identificação;
 - HEIC/HEIF não é aceito diretamente nesta versão;
-- não há painel administrativo ou moderação;
+- a moderação é restrita à conta administrativa configurada;
 - a listagem retorna até 1.200 fotos recentes.
 
 Para controle rígido por pessoa, use tokens únicos por convite ou QR Codes individuais.

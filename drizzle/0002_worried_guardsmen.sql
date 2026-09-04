@@ -1,0 +1,1 @@
+CREATE INDEX `idx_photos_hidden_created_at` ON `photos` (`hidden`,`created_at`);

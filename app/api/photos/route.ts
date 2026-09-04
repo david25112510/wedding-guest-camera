@@ -48,7 +48,7 @@ export async function GET() {
   const db = getDb();
   const id = await guestId();
   const [guest] = await db.select().from(guests).where(eq(guests.id, id)).limit(1);
-  const rows = await db.select().from(photos).orderBy(desc(photos.createdAt)).limit(MAX_GALLERY_PHOTOS);
+  const rows = await db.select().from(photos).where(eq(photos.hidden, 0)).orderBy(desc(photos.createdAt)).limit(MAX_GALLERY_PHOTOS);
 
   return Response.json(
     {

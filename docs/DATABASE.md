@@ -18,6 +18,8 @@
 | `guest_name` | text | nome preservado no momento do envio |
 | `object_key` | text | caminho do arquivo no R2 |
 | `content_type` | text | tipo MIME |
+| `hidden` | integer | 0 para visível; 1 para oculta |
+| `hidden_at` | text | data da ocultação, quando aplicável |
 | `created_at` | text | data do registro |
 
 ## Armazenamento R2

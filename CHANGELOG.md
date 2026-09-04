@@ -1,5 +1,23 @@
 # Histórico de mudanças
 
+## Painel administrativo
+
+### Adicionado
+
+- rota protegida `/admin`;
+- autenticação pela conta ChatGPT do proprietário;
+- indicadores de fotos totais, visíveis, ocultas e convidados;
+- filtro por situação e busca pelo nome do convidado;
+- ampliação das imagens;
+- ações para ocultar, restaurar e excluir;
+- migrações para moderação e índice da galeria pública.
+
+### Segurança
+
+- autorização administrativa validada novamente em todas as APIs;
+- fotos ocultas bloqueadas também na rota pública de arquivos;
+- credencial administrativa mantida fora do repositório.
+
 ## 2026-09-04
 
 ### Adicionado

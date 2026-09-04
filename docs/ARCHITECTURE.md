@@ -38,6 +38,10 @@ O servidor cria o cookie HTTP-only `momentos_guest`, válido por 30 dias. O nome
 
 O aceite do aviso de privacidade é registrado localmente com a chave `24momentos_privacy_consent`. Ele controla a interface, mas não substitui a política de privacidade e retenção definida pelo responsável pelo evento.
 
+### Administração
+
+A rota `/admin` exige autenticação pelo ChatGPT e compara o e-mail autenticado com `ADMIN_EMAIL`, configurado somente no ambiente de produção. As APIs administrativas repetem essa autorização no servidor. Fotos ocultas deixam de aparecer na listagem pública e também não são entregues pela rota pública de imagem.
+
 ## Fluxo de upload
 
 1. O navegador envia `multipart/form-data`.

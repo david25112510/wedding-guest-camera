@@ -1,5 +1,5 @@
 import { env } from "cloudflare:workers";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { getDb } from "../../../../db";
 import { photos } from "../../../../db/schema";
 
@@ -8,7 +8,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const [photo] = await getDb().select().from(photos).where(eq(photos.id, id)).limit(1);
+  const [photo] = await getDb().select().from(photos).where(and(eq(photos.id, id), eq(photos.hidden, 0))).limit(1);
 
   if (!photo) return new Response("Not found", { status: 404 });
 
