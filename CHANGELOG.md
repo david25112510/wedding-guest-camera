@@ -1,5 +1,21 @@
 # Histórico de mudanças
 
+## Otimização de imagens
+
+### Adicionado
+
+- redimensionamento da foto principal para até 2.048 pixels;
+- compressão JPEG no navegador antes do upload;
+- miniatura independente de 720 pixels para o mural e painel;
+- fallback para a imagem principal em registros anteriores à otimização;
+- migração para armazenar a chave da miniatura no D1.
+
+### Alterado
+
+- mural e painel passam a carregar miniaturas nas grades;
+- visualização ampliada continua usando a imagem principal;
+- exclusão administrativa remove as duas versões do R2.
+
 ## Painel administrativo
 
 ### Adicionado

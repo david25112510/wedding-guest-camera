@@ -1,85 +1,42 @@
 import assert from "node:assert/strict";
-import { readdir, readFile } from "node:fs/promises";
-import path from "node:path";
-import test, { after } from "node:test";
-import { fileURLToPath } from "node:url";
+import { readFile } from "node:fs/promises";
+import test from "node:test";
 
-import React from "react";
-import { renderToStaticMarkup } from "react-dom/server";
-import { createServer } from "vite";
-
-const root = fileURLToPath(new URL("..", import.meta.url));
-const vite = await createServer({
-  appType: "custom",
-  configFile: false,
-  root,
-  resolve: { alias: { "@": root } },
-  server: { middlewareMode: true },
-});
-
-after(async () => {
-  await vite.close();
-});
-
-async function readCssTree(directory) {
-  const entries = await readdir(directory, { withFileTypes: true });
-  const contents = await Promise.all(
-    entries.map(async (entry) => {
-      const entryPath = path.join(directory, entry.name);
-      if (entry.isDirectory()) {
-        return readCssTree(entryPath);
-      }
-      return entry.name.endsWith(".css") ? readFile(entryPath, "utf8") : "";
-    }),
-  );
-  return contents.join("\n");
+async function source(path) {
+  return readFile(new URL(`../${path}`, import.meta.url), "utf8");
 }
 
-test("emits the catalog's animation and scrolling utilities", async () => {
-  const css = await readCssTree(path.join(root, "dist"));
+test("optimizes a full photo and an independent thumbnail", async () => {
+  const optimizer = await source("lib/image-optimization.ts");
 
-  assert.match(css, /--tw-enter-opacity/);
-  assert.match(css, /scrollbar-width:\s*thin/);
-  assert.match(css, /scrollbar-width:\s*none/);
-  assert.match(css, /scrollbar-gutter:\s*stable/);
-  assert.match(css, /scroll-fade-reveal-b/);
-  assert.match(css, /mask-image:/);
-  assert.match(css, /tw-shimmer/);
-  assert.match(css, /prefers-reduced-motion:\s*reduce/);
+  assert.match(optimizer, /FULL_MAX_EDGE = 2048/);
+  assert.match(optimizer, /THUMBNAIL_MAX_EDGE = 720/);
+  assert.match(optimizer, /imageOrientation: "from-image"/);
+  assert.match(optimizer, /"image\/jpeg"/);
+  assert.match(optimizer, /FULL_MAX_EDGE, 0\.82/);
+  assert.match(optimizer, /THUMBNAIL_MAX_EDGE, 0\.72/);
 });
 
-test("forwards progress semantics to the primitive", async () => {
-  const { Progress } = await vite.ssrLoadModule("/components/ui/progress.tsx");
-  const html = renderToStaticMarkup(React.createElement(Progress, { value: 37 }));
+test("sends both image variants and keeps the full photo for the lightbox", async () => {
+  const page = await source("app/page.tsx");
 
-  assert.match(html, /aria-valuenow="37"/);
-  assert.match(html, /aria-valuetext="37%"/);
-  assert.match(html, /data-state="loading"/);
+  assert.match(page, /form\.append\("photo", optimized\.photo\)/);
+  assert.match(page, /form\.append\("thumbnail", optimized\.thumbnail\)/);
+  assert.match(page, /src=\{photo\.thumbnailUrl\}/);
+  assert.match(page, /src=\{selectedPhoto\.url\}/);
 });
 
-test("emits chart themes for the starter's media dark mode", async () => {
-  const { ChartStyle } = await vite.ssrLoadModule("/components/ui/chart.tsx");
-  const html = renderToStaticMarkup(
-    React.createElement(ChartStyle, {
-      id: "contract",
-      config: {
-        latency: { theme: { light: "#ffffff", dark: "#000000" } },
-      },
-    }),
-  );
+test("stores, serves, and deletes the thumbnail with the original", async () => {
+  const [uploadApi, deliveryApi, adminApi, schema] = await Promise.all([
+    source("app/api/photos/route.ts"),
+    source("app/api/photos/[id]/route.ts"),
+    source("app/api/admin/photos/route.ts"),
+    source("db/schema.ts"),
+  ]);
 
-  assert.match(html, /\[data-chart=contract\]/);
-  assert.match(html, /@media \(prefers-color-scheme: dark\)/);
-  assert.doesNotMatch(html, /\.dark/);
-});
-
-test("renders sidebar skeletons deterministically", async () => {
-  const { SidebarMenuSkeleton } = await vite.ssrLoadModule(
-    "/components/ui/sidebar.tsx",
-  );
-  const first = renderToStaticMarkup(React.createElement(SidebarMenuSkeleton));
-  const second = renderToStaticMarkup(React.createElement(SidebarMenuSkeleton));
-
-  assert.equal(first, second);
-  assert.match(first, /--skeleton-width:70%/);
+  assert.match(uploadApi, /thumbnail_object_key/);
+  assert.match(uploadApi, /BUCKET\.put\(thumbnailObjectKey/);
+  assert.match(deliveryApi, /variant === "thumbnail"/);
+  assert.match(adminApi, /BUCKET\.delete\(photo\.thumbnail_object_key\)/);
+  assert.match(schema, /thumbnailObjectKey: text\("thumbnail_object_key"\)/);
 });

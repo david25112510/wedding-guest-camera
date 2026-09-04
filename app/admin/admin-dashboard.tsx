@@ -23,6 +23,7 @@ type AdminPhoto = {
   hiddenAt: string | null;
   createdAt: string;
   url: string;
+  thumbnailUrl: string;
 };
 
 type Stats = {
@@ -176,7 +177,7 @@ export default function AdminDashboard({
             {filteredPhotos.map((photo) => (
               <article className={photo.hidden ? "admin-photo hidden" : "admin-photo"} key={photo.id}>
                 <button className="admin-photo__image" onClick={() => setSelected(photo)} aria-label={`Ampliar foto de ${photo.guestName}`}>
-                  <img src={photo.url} alt={`Foto enviada por ${photo.guestName}`} loading="lazy" />
+                  <img src={photo.thumbnailUrl} alt={`Foto enviada por ${photo.guestName}`} loading="lazy" />
                   {photo.hidden && <span><EyeOff /> Oculta</span>}
                 </button>
                 <div className="admin-photo__meta">

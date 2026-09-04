@@ -7,6 +7,7 @@ import { eventConfig } from "../../../lib/event-config";
 
 const LIMIT = eventConfig.maximumPhotosPerGuest;
 const MAX_FILE_SIZE = 12 * 1024 * 1024;
+const MAX_THUMBNAIL_SIZE = 2 * 1024 * 1024;
 const MAX_GALLERY_PHOTOS = 1200;
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
@@ -59,6 +60,9 @@ export async function GET() {
         guestName: photo.guestName,
         createdAt: photo.createdAt,
         url: `/api/photos/${photo.id}`,
+        thumbnailUrl: photo.thumbnailObjectKey
+          ? `/api/photos/${photo.id}?variant=thumbnail`
+          : `/api/photos/${photo.id}`,
       })),
     },
     { headers: { "cache-control": "no-store" } },
@@ -68,6 +72,7 @@ export async function GET() {
 export async function POST(request: Request) {
   const form = await request.formData();
   const file = form.get("photo");
+  const thumbnail = form.get("thumbnail");
   const name = String(form.get("guestName") ?? "Convidado").trim().slice(0, 40) || "Convidado";
 
   if (!(file instanceof File) || !ALLOWED_TYPES.has(file.type)) {
@@ -84,9 +89,31 @@ export async function POST(request: Request) {
     );
   }
 
-  const buffer = await file.arrayBuffer();
+  if (
+    !(thumbnail instanceof File) ||
+    !ALLOWED_TYPES.has(thumbnail.type) ||
+    thumbnail.type !== file.type
+  ) {
+    return Response.json(
+      { error: "Não foi possível preparar a miniatura da foto." },
+      { status: 400 },
+    );
+  }
+
+  if (thumbnail.size <= 0 || thumbnail.size > MAX_THUMBNAIL_SIZE) {
+    return Response.json(
+      { error: "A miniatura da foto ficou maior que o permitido." },
+      { status: 400 },
+    );
+  }
+
+  const [buffer, thumbnailBuffer] = await Promise.all([
+    file.arrayBuffer(),
+    thumbnail.arrayBuffer(),
+  ]);
   const bytes = new Uint8Array(buffer.slice(0, 16));
-  if (!matchesSignature(bytes, file.type)) {
+  const thumbnailBytes = new Uint8Array(thumbnailBuffer.slice(0, 16));
+  if (!matchesSignature(bytes, file.type) || !matchesSignature(thumbnailBytes, thumbnail.type)) {
     return Response.json(
       { error: "O arquivo não corresponde a uma imagem válida." },
       { status: 400 },
@@ -116,21 +143,29 @@ export async function POST(request: Request) {
 
   const photoId = crypto.randomUUID();
   const objectKey = `event/photos/${photoId}.${extensionFor(file.type)}`;
+  const thumbnailObjectKey = `event/thumbnails/${photoId}.${extensionFor(thumbnail.type)}`;
 
   try {
-    await env.BUCKET.put(objectKey, buffer, {
-      httpMetadata: { contentType: file.type },
-      customMetadata: { guestId: id },
-    });
+    await Promise.all([
+      env.BUCKET.put(objectKey, buffer, {
+        httpMetadata: { contentType: file.type },
+        customMetadata: { guestId: id, variant: "full" },
+      }),
+      env.BUCKET.put(thumbnailObjectKey, thumbnailBuffer, {
+        httpMetadata: { contentType: thumbnail.type },
+        customMetadata: { guestId: id, variant: "thumbnail" },
+      }),
+    ]);
 
     await env.DB.prepare(
-      "INSERT INTO photos (id, guest_id, guest_name, object_key, content_type, created_at) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)",
+      "INSERT INTO photos (id, guest_id, guest_name, object_key, thumbnail_object_key, content_type, created_at) VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)",
     )
-      .bind(photoId, id, name, objectKey, file.type)
+      .bind(photoId, id, name, objectKey, thumbnailObjectKey, file.type)
       .run();
   } catch (error) {
     await Promise.allSettled([
       env.BUCKET.delete(objectKey),
+      env.BUCKET.delete(thumbnailObjectKey),
       env.DB.prepare(
         "UPDATE guests SET photo_count = CASE WHEN photo_count > 0 THEN photo_count - 1 ELSE 0 END WHERE id = ?",
       )

@@ -12,7 +12,8 @@ Retorna as fotos mais recentes e o saldo do convidado identificado pelo cookie.
       "id": "uuid",
       "guestName": "Convidado",
       "createdAt": "2026-09-19 20:30:00",
-      "url": "/api/photos/uuid"
+      "url": "/api/photos/uuid",
+      "thumbnailUrl": "/api/photos/uuid?variant=thumbnail"
     }
   ]
 }
@@ -25,6 +26,7 @@ Recebe `multipart/form-data`.
 | Campo | Tipo | Obrigatório | Descrição |
 |---|---|---:|---|
 | `photo` | arquivo | sim | JPEG, PNG ou WebP de até 12 MB, vindo da câmera ou galeria |
+| `thumbnail` | arquivo | sim | Miniatura otimizada, com até 2 MB e o mesmo tipo da foto |
 | `guestName` | texto | sim | Nome exibido, limitado a 40 caracteres |
 
 Resposta de sucesso:
@@ -41,14 +43,11 @@ Erros:
 
 ## GET /api/photos/:id
 
-Entrega a imagem pelo identificador. Objetos encontrados recebem `Content-Type`, proteção `nosniff`, exibição inline e cache privado de uma hora.
+Entrega a imagem principal pelo identificador. Com `?variant=thumbnail`, entrega a miniatura quando disponível e usa a imagem principal como fallback para registros antigos. Objetos encontrados recebem `Content-Type`, proteção `nosniff`, exibição inline e cache privado de uma hora.
 
 ## Evoluções recomendadas
 
 - paginação por cursor;
-- miniaturas otimizadas;
-- moderação;
-- exclusão administrativa;
 - rate limiting;
 - código único por convite;
 - processamento assíncrono de imagens.

@@ -23,7 +23,7 @@ Não armazene o e-mail administrativo, senhas ou tokens no repositório.
 
 **Restaurar:** devolve a foto ao mural coletivo.
 
-**Excluir:** remove o registro do D1, solicita a remoção do objeto no R2 e devolve uma unidade ao saldo do convidado. A ação não pode ser desfeita.
+**Excluir:** remove o registro do D1, solicita a remoção da foto principal e da miniatura no R2 e devolve uma unidade ao saldo do convidado. A ação não pode ser desfeita.
 
 ## Configuração
 

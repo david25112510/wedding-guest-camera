@@ -11,12 +11,14 @@
 
 Cada navegador pode enviar até 24 fotos no total. Câmera e galeria compartilham o mesmo saldo.
 
+Antes do envio, o próprio navegador reduz a imagem para até 2.048 pixels e cria uma miniatura leve. O processo preserva boa qualidade para ampliação e reduz o consumo de dados móveis.
+
 ## Formatos aceitos
 
 - JPEG/JPG;
 - PNG;
 - WebP;
-- tamanho máximo de 12 MB por arquivo.
+- tamanho máximo de 12 MB para o arquivo original selecionado.
 
 HEIC e HEIF não são aceitos diretamente. Se o celular não converter automaticamente, exporte ou compartilhe a imagem como JPEG.
 

@@ -12,10 +12,12 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { coupleNames, eventConfig } from "../lib/event-config";
+import { optimizePhoto } from "../lib/image-optimization";
 
 type Photo = {
   id: string;
   url: string;
+  thumbnailUrl: string;
   guestName: string;
   createdAt: string;
 };
@@ -129,11 +131,17 @@ export default function Home() {
 
   async function sendPhoto(file?: File) {
     if (!file || remaining <= 0 || !consented) return;
+    if (file.size > 12 * 1024 * 1024) {
+      setMessage("A foto original deve ter no máximo 12 MB.");
+      return;
+    }
     setUploading(true);
-    setMessage("");
+    setMessage("Preparando sua foto para um envio mais rápido...");
     try {
+      const optimized = await optimizePhoto(file);
       const form = new FormData();
-      form.append("photo", file);
+      form.append("photo", optimized.photo);
+      form.append("thumbnail", optimized.thumbnail);
       form.append("guestName", name);
       const response = await fetch("/api/photos", { method: "POST", body: form });
       const data = (await response.json()) as { remaining?: number; error?: string };
@@ -145,8 +153,12 @@ export default function Home() {
         await loadGallery();
         window.setTimeout(() => document.querySelector("#galeria")?.scrollIntoView({ behavior: "smooth" }), 450);
       }
-    } catch {
-      setMessage("A conexão oscilou. Tente enviar novamente.");
+    } catch (reason) {
+      setMessage(
+        reason instanceof Error && reason.message.startsWith("O navegador")
+          ? reason.message
+          : "A conexão oscilou. Tente enviar novamente.",
+      );
     } finally {
       setUploading(false);
       if (inputRef.current) inputRef.current.value = "";
@@ -240,7 +252,7 @@ export default function Home() {
               <div className="photo-grid">
                 {photos.map((photo, index) => (
                   <figure key={photo.id} className={`${index % 5 === 0 ? "photo-card photo-card--tall" : "photo-card"} ${newMoment?.id === photo.id ? "photo-card--new" : ""}`} onClick={() => setSelectedPhoto(photo)} tabIndex={0} role="button" onKeyDown={(event) => (event.key === "Enter" || event.key === " ") && setSelectedPhoto(photo)}>
-                    <img src={photo.url} alt={`Foto registrada por ${photo.guestName}`} loading="lazy" />
+                    <img src={photo.thumbnailUrl} alt={`Foto registrada por ${photo.guestName}`} loading="lazy" />
                     <figcaption>por {photo.guestName}</figcaption>
                   </figure>
                 ))}
@@ -254,7 +266,7 @@ export default function Home() {
 
       {newMoment && joined && (
         <button className="new-moment-toast" onClick={() => { setSelectedPhoto(newMoment); setNewMoment(null); }} aria-label={`Abrir nova foto de ${newMoment.guestName}`}>
-          <img src={newMoment.url} alt="" />
+          <img src={newMoment.thumbnailUrl} alt="" />
           <span><strong>Novo momento revelado</strong><small>por {newMoment.guestName}</small></span>
           <Sparkles />
         </button>

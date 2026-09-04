@@ -22,7 +22,9 @@ flowchart TD
 
 ### Interface
 
-`app/page.tsx` controla entrada, consentimento, captura, importação, contador, mensagens de envio e mural. Há dois campos de arquivo: um com `capture="environment"`, que sugere a câmera traseira, e outro sem `capture`, que abre a galeria ou o seletor de arquivos. Ambos usam a mesma rotina de upload.
+`app/page.tsx` controla entrada, consentimento, captura, importação, contador, mensagens de envio e mural. Há dois campos de arquivo: um com `capture="environment"`, que sugere a câmera traseira, e outro sem `capture`, que abre a galeria ou o seletor de arquivos. Ambos usam a mesma rotina de otimização e upload.
+
+`lib/image-optimization.ts` corrige a orientação durante a decodificação, limita a imagem principal a 2.048 pixels, gera uma miniatura de 720 pixels e converte ambas para JPEG otimizado antes da transmissão.
 
 ### API
 
@@ -44,18 +46,20 @@ A rota `/admin` exige autenticação pelo ChatGPT e compara o e-mail autenticado
 
 ## Fluxo de upload
 
-1. O navegador envia `multipart/form-data`.
-2. A API valida tipo e tamanho.
-3. A API verifica a contagem atual.
-4. O arquivo é gravado no R2.
-5. Os metadados são inseridos no D1.
-6. A contagem do convidado é atualizada.
-7. A API devolve o saldo restante.
+1. O navegador redimensiona e comprime a imagem.
+2. O navegador cria uma miniatura independente.
+3. A imagem e a miniatura são enviadas em `multipart/form-data`.
+4. A API valida tipo, tamanho e assinatura dos dois arquivos.
+5. A API verifica e reserva uma unidade da contagem atual.
+6. Os dois arquivos são gravados no R2.
+7. Os metadados são inseridos no D1.
+8. A API devolve o saldo restante.
 
 ## Limites atuais
 
 - máximo de 12 MB por imagem;
+- imagem principal limitada a 2.048 pixels e miniatura a 720 pixels;
 - até 1.200 fotos retornadas por consulta;
-- atualização da galeria a cada 10 segundos;
+- atualização da galeria a cada 6 segundos;
 - limite por cookie/dispositivo;
-- sem moderação administrativa nesta versão.
+- moderação restrita ao administrador configurado.

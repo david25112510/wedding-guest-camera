@@ -20,6 +20,9 @@ O projeto foi criado para o casamento de **Lidieyne & Alexandre**, em **19.09.20
 - experiência responsiva e mobile-first;
 - captura pela câmera traseira em dispositivos compatíveis;
 - importação de JPEG, PNG e WebP da galeria;
+- redimensionamento automático para até 2.048 pixels;
+- compressão JPEG otimizada antes do envio;
+- miniaturas de 720 pixels para carregamento rápido do mural;
 - limite configurável e controlado no servidor;
 - consentimento discreto salvo uma vez no aparelho;
 - armazenamento privado de imagens no Cloudflare R2;
@@ -89,6 +92,7 @@ db/
 drizzle/               migrações SQL
 lib/
   event-config.ts
+  image-optimization.ts
 public/
   monogram-la-3d.png
 docs/

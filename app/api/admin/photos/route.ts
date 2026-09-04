@@ -6,6 +6,7 @@ type AdminPhotoRow = {
   guest_id: string;
   guest_name: string;
   object_key: string;
+  thumbnail_object_key: string | null;
   content_type: string;
   hidden: number;
   hidden_at: string | null;
@@ -21,7 +22,7 @@ export async function GET() {
 
   const [photosResult, guestsResult] = await env.DB.batch([
     env.DB.prepare(
-      "SELECT id, guest_id, guest_name, object_key, content_type, hidden, hidden_at, created_at FROM photos ORDER BY created_at DESC LIMIT 1200",
+      "SELECT id, guest_id, guest_name, object_key, thumbnail_object_key, content_type, hidden, hidden_at, created_at FROM photos ORDER BY created_at DESC LIMIT 1200",
     ),
     env.DB.prepare(
       "SELECT COUNT(*) AS total_guests FROM guests",
@@ -49,6 +50,9 @@ export async function GET() {
         hiddenAt: photo.hidden_at,
         createdAt: photo.created_at,
         url: `/api/admin/photos/${photo.id}`,
+        thumbnailUrl: photo.thumbnail_object_key
+          ? `/api/admin/photos/${photo.id}?variant=thumbnail`
+          : `/api/admin/photos/${photo.id}`,
       })),
     },
     { headers: { "cache-control": "no-store" } },
@@ -85,10 +89,10 @@ export async function DELETE(request: Request) {
   }
 
   const photo = await env.DB.prepare(
-    "SELECT guest_id, object_key FROM photos WHERE id = ? LIMIT 1",
+    "SELECT guest_id, object_key, thumbnail_object_key FROM photos WHERE id = ? LIMIT 1",
   )
     .bind(body.id)
-    .first<{ guest_id: string; object_key: string }>();
+    .first<{ guest_id: string; object_key: string; thumbnail_object_key: string | null }>();
 
   if (!photo) return Response.json({ error: "Foto não encontrada." }, { status: 404 });
 
@@ -100,7 +104,10 @@ export async function DELETE(request: Request) {
   ]);
 
   try {
-    await env.BUCKET.delete(photo.object_key);
+    await Promise.all([
+      env.BUCKET.delete(photo.object_key),
+      ...(photo.thumbnail_object_key ? [env.BUCKET.delete(photo.thumbnail_object_key)] : []),
+    ]);
   } catch (error) {
     console.error("R2 cleanup failed after administrative deletion", error);
   }
