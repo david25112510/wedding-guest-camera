@@ -29,13 +29,26 @@ test("sends both image variants and keeps the full photo for the lightbox", asyn
 test("keeps consent visible beside the camera action", async () => {
   const [page, styles] = await Promise.all([
     source("app/page.tsx"),
-    source("app/mural-interactions.css"),
+    source("app/interaction-fixes.css"),
   ]);
 
   assert.match(page, /Autorize a exibição das suas fotos/);
-  assert.match(page, /Concordo e liberar câmera/);
+  assert.match(page, /Concordo e continuar/);
   assert.match(page, /role="group" aria-labelledby="consent-title"/);
-  assert.match(styles, /\.capture__card>\.consent-card/);
+  assert.match(styles, /\.capture__controls \.consent-card/);
+  assert.match(styles, /pointer-events: none/);
+});
+
+test("keeps camera controls clickable and limits gallery rendering", async () => {
+  const page = await source("app/page.tsx");
+
+  assert.match(page, /disabled=\{uploading \|\| remaining <= 0\} aria-label=\{remaining > 0 \? "Abrir câmera"/);
+  assert.match(page, /className="camera-action__gallery"[\s\S]*disabled=\{uploading \|\| remaining <= 0\}/);
+  assert.match(page, /<button onClick=\{openCamera\}>Registrar agora<\/button>/);
+  assert.match(page, /setConsented\(true\)[\s\S]*localStorage\.setItem\("24momentos_privacy_consent"/);
+  assert.match(page, /setInterval\(refreshWhenVisible, 20000\)/);
+  assert.match(page, /photos\.slice\(0, visiblePhotoCount\)/);
+  assert.match(page, /loading="lazy" decoding="async"/);
 });
 
 test("stores, serves, and deletes the thumbnail with the original", async () => {

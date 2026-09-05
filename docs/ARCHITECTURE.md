@@ -42,7 +42,7 @@ O aceite do aviso de privacidade é registrado localmente com a chave `24momento
 
 ### Administração
 
-A rota `/admin` exige autenticação pelo ChatGPT e compara o e-mail autenticado com `ADMIN_EMAIL`, configurado somente no ambiente de produção. As APIs administrativas repetem essa autorização no servidor. Fotos ocultas deixam de aparecer na listagem pública e também não são entregues pela rota pública de imagem.
+A rota `/admin` exige autenticação pela camada segura da hospedagem e compara o e-mail autenticado com `ADMIN_EMAIL`, configurado somente no ambiente de produção. As APIs administrativas repetem essa autorização no servidor. Fotos ocultas deixam de aparecer na listagem pública e também não são entregues pela rota pública de imagem.
 
 ## Fluxo de upload
 

@@ -2,7 +2,7 @@
 
 ## Acesso
 
-Abra `/admin` no endereço publicado. O painel solicita o login do ChatGPT e libera o acesso somente quando o e-mail autenticado coincide com a variável de produção `ADMIN_EMAIL`.
+Abra `/admin` no endereço publicado. O painel solicita o login seguro do proprietário e libera o acesso somente quando o e-mail autenticado coincide com a variável de produção `ADMIN_EMAIL`.
 
 Não armazene o e-mail administrativo, senhas ou tokens no repositório.
 

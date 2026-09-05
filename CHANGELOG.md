@@ -1,5 +1,25 @@
 # Histórico de mudanças
 
+## Interação e desempenho móvel
+
+### Corrigido
+
+- camada decorativa que bloqueava o toque no botão de autorização;
+- câmera, galeria e ação do mural agora respondem mesmo antes do aceite, orientando o convidado;
+- consentimento continua funcionando quando o armazenamento local do navegador está indisponível.
+
+### Otimizado
+
+- atualização automática do mural reduzida e pausada quando a página está em segundo plano;
+- renderização inicial limitada a 36 fotos, com carregamento progressivo;
+- miniaturas decodificadas de forma assíncrona;
+- efeitos gráficos reduzidos em telas pequenas;
+- estilos administrativos removidos do carregamento da página dos convidados;
+
+### Privacidade visual
+
+- referências à ferramenta de criação removidas dos textos públicos e da documentação de uso.
+
 ## QR Code e acesso dos convidados
 
 ### Adicionado
@@ -41,7 +61,7 @@
 ### Adicionado
 
 - rota protegida `/admin`;
-- autenticação pela conta ChatGPT do proprietário;
+- autenticação pela conta autorizada do proprietário;
 - indicadores de fotos totais, visíveis, ocultas e convidados;
 - filtro por situação e busca pelo nome do convidado;
 - ampliação das imagens;

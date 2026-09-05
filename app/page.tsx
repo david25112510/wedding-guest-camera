@@ -42,6 +42,7 @@ function Monogram({ compact = false }: { compact?: boolean }) {
 export default function Home() {
   const inputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
+  const consentRef = useRef<HTMLDivElement>(null);
   const knownPhotoIds = useRef<Set<string>>(new Set());
   const galleryInitialized = useRef(false);
   const toastTimer = useRef<number | null>(null);
@@ -54,6 +55,7 @@ export default function Home() {
   const [message, setMessage] = useState("");
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
   const [newMoment, setNewMoment] = useState<Photo | null>(null);
+  const [visiblePhotoCount, setVisiblePhotoCount] = useState(36);
 
   const showNewMoment = useCallback((photo: Photo) => {
     setNewMoment(photo);
@@ -74,7 +76,11 @@ export default function Home() {
 
       knownPhotoIds.current = new Set(data.photos.map((photo) => photo.id));
       galleryInitialized.current = true;
-      setPhotos(data.photos);
+      setPhotos((current) => {
+        const unchanged = current.length === data.photos.length
+          && current.every((photo, index) => photo.id === data.photos[index]?.id);
+        return unchanged ? current : data.photos;
+      });
       if (typeof data.remaining === "number") setRemaining(data.remaining);
     } catch {
       // Keep the experience usable during momentary network instability.
@@ -82,8 +88,14 @@ export default function Home() {
   }, [showNewMoment]);
 
   useEffect(() => {
-    const savedName = localStorage.getItem("24momentos_guest_name");
-    const savedConsent = localStorage.getItem("24momentos_privacy_consent") === "yes";
+    let savedName: string | null = null;
+    let savedConsent = false;
+    try {
+      savedName = localStorage.getItem("24momentos_guest_name");
+      savedConsent = localStorage.getItem("24momentos_privacy_consent") === "yes";
+    } catch {
+      // Some privacy modes disable local storage. The current visit still works normally.
+    }
     queueMicrotask(() => {
       if (savedName) {
         setName(savedName);
@@ -91,13 +103,26 @@ export default function Home() {
       }
       if (savedConsent) setConsented(true);
     });
-    void loadGallery();
-    const timer = window.setInterval(loadGallery, 6000);
+  }, []);
+
+  useEffect(() => {
+    if (!joined) return;
+
+    const refreshWhenVisible = () => {
+      if (!document.hidden) void loadGallery();
+    };
+
+    refreshWhenVisible();
+    const timer = window.setInterval(refreshWhenVisible, 20000);
+    window.addEventListener("focus", refreshWhenVisible);
+    document.addEventListener("visibilitychange", refreshWhenVisible);
     return () => {
       window.clearInterval(timer);
+      window.removeEventListener("focus", refreshWhenVisible);
+      document.removeEventListener("visibilitychange", refreshWhenVisible);
       if (toastTimer.current) window.clearTimeout(toastTimer.current);
     };
-  }, [loadGallery]);
+  }, [joined, loadGallery]);
 
   useEffect(() => {
     if (!selectedPhoto) return;
@@ -109,23 +134,40 @@ export default function Home() {
   function enterEvent() {
     const cleanName = name.trim().slice(0, 40);
     if (!cleanName) return;
-    localStorage.setItem("24momentos_guest_name", cleanName);
     setName(cleanName);
     setJoined(true);
+    try {
+      localStorage.setItem("24momentos_guest_name", cleanName);
+    } catch {
+      // Keep the current visit usable even when storage is unavailable.
+    }
   }
 
   function acceptConsent() {
-    localStorage.setItem("24momentos_privacy_consent", "yes");
     setConsented(true);
+    setMessage("Tudo certo. Agora você já pode abrir a câmera ou escolher uma foto.");
+    try {
+      localStorage.setItem("24momentos_privacy_consent", "yes");
+    } catch {
+      // Consent remains valid for the current visit.
+    }
   }
 
   function openCamera() {
-    if (!consented) return;
+    if (!consented) {
+      setMessage("Confirme a autorização para liberar a câmera.");
+      consentRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
     inputRef.current?.click();
   }
 
   function openGallery() {
-    if (!consented) return;
+    if (!consented) {
+      setMessage("Confirme a autorização para escolher uma foto.");
+      consentRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
     galleryInputRef.current?.click();
   }
 
@@ -213,30 +255,31 @@ export default function Home() {
                 <h1>O próximo<br />momento é seu.</h1>
                 <p>Fotografe agora ou escolha uma imagem da sua galeria.<br />Nós cuidamos do resto.</p>
               </div>
-              <div className="camera-action">
-                <span className="camera-action__orbit" aria-hidden="true" />
-                <input ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp" capture="environment" className="sr-only" onChange={(event) => void sendPhoto(event.target.files?.[0])} />
-                <input ref={galleryInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(event) => void sendPhoto(event.target.files?.[0])} />
-                <button onClick={openCamera} disabled={uploading || remaining <= 0 || !consented} aria-label={remaining > 0 ? "Abrir câmera" : "Limite de fotos atingido"}>
-                  {uploading ? <LoaderCircle className="animate-spin" /> : <Camera />}
-                </button>
-                <strong>{uploading ? "Revelando..." : remaining > 0 ? consented ? "Abrir câmera" : "Aceite para fotografar" : "Filme completo"}</strong>
-                <button className="camera-action__gallery" onClick={openGallery} disabled={uploading || remaining <= 0 || !consented} aria-label="Escolher foto da galeria">
-                  <Images /> Escolher da galeria
-                </button>
-              </div>
-              {!consented && (
-                <div className="consent-card" role="group" aria-labelledby="consent-title">
-                  <span className="consent-card__icon"><ShieldCheck aria-hidden="true" /></span>
-                  <div className="consent-card__copy">
-                    <p className="eyebrow">ANTES DE FOTOGRAFAR</p>
-                    <h2 id="consent-title">Autorize a exibição das suas fotos</h2>
-                    <p>As imagens que você enviar aparecerão no mural deste casamento.</p>
-                    <small>Você escolhe o que compartilhar. A autorização fica salva neste aparelho.</small>
+              <div className="capture__controls">
+                {!consented && (
+                  <div ref={consentRef} className="consent-card" role="group" aria-labelledby="consent-title">
+                    <span className="consent-card__icon"><ShieldCheck aria-hidden="true" /></span>
+                    <div className="consent-card__copy">
+                      <p className="eyebrow">ANTES DE FOTOGRAFAR</p>
+                      <h2 id="consent-title">Autorize a exibição das suas fotos</h2>
+                      <p>As imagens enviadas aparecerão no mural deste casamento.</p>
+                    </div>
+                    <button className="consent-card__button" onClick={acceptConsent}>Concordo e continuar</button>
                   </div>
-                  <button className="consent-card__button" onClick={acceptConsent}>Concordo e liberar câmera</button>
+                )}
+                <div className="camera-action">
+                  <span className="camera-action__orbit" aria-hidden="true" />
+                  <input ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp" capture="environment" className="sr-only" onChange={(event) => void sendPhoto(event.target.files?.[0])} />
+                  <input ref={galleryInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(event) => void sendPhoto(event.target.files?.[0])} />
+                  <button onClick={openCamera} disabled={uploading || remaining <= 0} aria-label={remaining > 0 ? "Abrir câmera" : "Limite de fotos atingido"}>
+                    {uploading ? <LoaderCircle className="animate-spin" /> : <Camera />}
+                  </button>
+                  <strong>{uploading ? "Revelando..." : remaining > 0 ? consented ? "Abrir câmera" : "Autorize para fotografar" : "Filme completo"}</strong>
+                  <button className="camera-action__gallery" onClick={openGallery} disabled={uploading || remaining <= 0} aria-label="Escolher foto da galeria">
+                    <Images /> Escolher da galeria
+                  </button>
                 </div>
-              )}
+              </div>
               {message && <div className="capture__message" role="status"><Sparkles />{message}</div>}
             </div>
 
@@ -251,15 +294,20 @@ export default function Home() {
             <p className="gallery__quote">Cada foto conta uma história. Cada momento, uma lembrança eterna.</p>
 
             {photos.length === 0 ? (
-              <div className="empty-gallery"><Images /><p>A história começa com a primeira foto.</p><button onClick={openCamera} disabled={!consented}>Registrar agora</button></div>
+              <div className="empty-gallery"><Images /><p>A história começa com a primeira foto.</p><button onClick={openCamera}>Registrar agora</button></div>
             ) : (
               <div className="photo-grid">
-                {photos.map((photo, index) => (
+                {photos.slice(0, visiblePhotoCount).map((photo, index) => (
                   <figure key={photo.id} className={`${index % 5 === 0 ? "photo-card photo-card--tall" : "photo-card"} ${newMoment?.id === photo.id ? "photo-card--new" : ""}`} onClick={() => setSelectedPhoto(photo)} tabIndex={0} role="button" onKeyDown={(event) => (event.key === "Enter" || event.key === " ") && setSelectedPhoto(photo)}>
-                    <img src={photo.thumbnailUrl} alt={`Foto registrada por ${photo.guestName}`} loading="lazy" />
+                    <img src={photo.thumbnailUrl} alt={`Foto registrada por ${photo.guestName}`} loading="lazy" decoding="async" />
                     <figcaption>por {photo.guestName}</figcaption>
                   </figure>
                 ))}
+                {visiblePhotoCount < photos.length && (
+                  <button className="gallery__more" onClick={() => setVisiblePhotoCount((count) => count + 24)}>
+                    Ver mais momentos
+                  </button>
+                )}
               </div>
             )}
           </section>
