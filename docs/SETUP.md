@@ -52,13 +52,23 @@ npm run lint
 
 ## QR Code
 
+O projeto inclui duas versões do QR Code definitivo em `public/`:
+
+- `qr-code-casamento.png`: arquivo de alta resolução para impressão e compartilhamento;
+- `qr-code-casamento.svg`: arquivo vetorial para materiais gráficos.
+
+Os dois arquivos apontam diretamente para:
+
+```text
+https://wedding-guest-camera.davibh16.chatgpt.site
+```
+
 Depois da publicação pública:
 
-1. copie a URL HTTPS definitiva;
-2. gere o QR Code apontando diretamente para essa URL;
-3. teste em Android e iPhone;
-4. confirme câmera, importação da galeria, upload, contador e mural;
-5. imprima o QR Code com uma URL legível como alternativa.
+1. teste o QR Code em Android e iPhone;
+2. confirme câmera, importação da galeria, upload, contador e mural;
+3. imprima o QR Code com a URL legível como alternativa;
+4. preserve a margem branca ao redor do código na arte final.
 
 ## Lista de testes antes do evento
 

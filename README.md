@@ -95,6 +95,8 @@ lib/
   image-optimization.ts
 public/
   monogram-la-3d.png
+  qr-code-casamento.png
+  qr-code-casamento.svg
 docs/
 ~~~
 
@@ -107,6 +109,7 @@ docs/
 - [API](docs/API.md)
 - [Banco de dados](docs/DATABASE.md)
 - [Personalização e reutilização](docs/CUSTOMIZATION.md)
+- [QR Code definitivo](docs/QR_CODE.md)
 - [Segurança e privacidade](SECURITY.md)
 - [Histórico de mudanças](CHANGELOG.md)
 - [Como contribuir](CONTRIBUTING.md)

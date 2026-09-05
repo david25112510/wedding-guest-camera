@@ -1,5 +1,17 @@
 # Histórico de mudanças
 
+## QR Code e acesso dos convidados
+
+### Adicionado
+
+- QR Code definitivo em PNG de alta resolução e SVG vetorial;
+- documentação de impressão, testes e endereço público do evento.
+
+### Implantação
+
+- preparação da plataforma para acesso público por qualquer convidado com o link;
+- painel `/admin` mantido sob autenticação e autorização exclusiva do proprietário.
+
 ## Consentimento em destaque
 
 ### Alterado
